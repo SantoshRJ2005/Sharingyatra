@@ -233,11 +233,7 @@ app.post("/login", async (req, res) => {
     let account = await User.findOne({ email });
     let userType = "customer";
 
-    // if (!account) {
-    //  account = await Agencies.findOne({ agencyEmail: email });
-    //   userType = "agency";
-    // }
-
+   account = await Agencies.findOne({ agencyEmail: email });
     if (!account) {
       return res.status(400).json({ success: false, message: "Account not found" });
     }
