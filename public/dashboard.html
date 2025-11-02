@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Sharing Yatra</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Subtle gradient background for depth, consistent with booking page */
+        background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    /* --- Existing Scrollbar (Unchanged) --- */
+    .custom-scrollbar::-webkit-scrollbar{ width:6px; }
+    .custom-scrollbar::-webkit-scrollbar-track{ background:#f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb{ background:#94a3b8; border-radius:3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover{ background:#475569; }
+
+    /* --- New: Sidebar Enhancements --- */
+    #sidebar {
+        /* Add a slightly more pronounced shadow */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Brand the sidebar header */
+    #sidebar .h-16 {
+        background: linear-gradient(to right, #2563eb, #4f46e5); /* blue-600 to indigo-600 */
+    }
+    #sidebar .h-16 h1 {
+        color: white;
+        /* Add a subtle text shadow */
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Style sidebar navigation links */
+    #sidebar nav a {
+        transition: all 0.2s ease-in-out;
+        color: #4b5563; /* gray-600 */
+    }
+
+    /* Hover state for inactive links */
+    #sidebar nav a:hover {
+        background-color: #f3f4f6; /* gray-100 */
+        color: #1f2937; /* gray-800 */
+        /* Add a small 'push' effect */
+        transform: translateX(4px);
+    }
+
+    /* Style the active (current) navigation link */
+    #sidebar nav a.bg-gray-200 {
+        background: #eff6ff; /* blue-50 */
+        color: #2563eb; /* blue-600 */
+        font-weight: 600; /* Make it bolder */
+        /* Add a visual indicator bar */
+        border-right: 4px solid #2563eb; /* blue-600 */
+    }
+    /* Make the active link's SVG icon match */
+    #sidebar nav a.bg-gray-200 svg {
+        color: #2563eb; /* blue-600 */
+    }
+
+    /* Style the Logout button hover */
+    #logoutBtn:hover {
+        background-color: #ffebee; /* light red-50 */
+        color: #dc2626; /* red-600 */
+        transform: translateX(4px);
+    }
+    #logoutBtn:hover svg {
+        color: #dc2626; /* red-600 */
+    }
+    
+    /* --- New: Main Content & Card Enhancements --- */
+    
+    /* Style all cards consistently */
+    .bg-white.rounded-2xl.shadow,
+    .bg-white.rounded-2xl.shadow-lg {
+        transition: all 0.3s ease-in-out;
+        /* Use a softer, more modern shadow */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f3f4f6; /* gray-100 border */
+    }
+
+    /* Add a 'lift' effect on card hover */
+    .bg-white.rounded-2xl.shadow:hover,
+    .bg-white.rounded-2xl.shadow-lg:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* --- New: Primary CTA Button (Quick Actions) --- */
+    /* Make this button match the booking form's CTA */
+    .bg-blue-600.text-white.font-semibold.py-3 {
+        background-image: linear-gradient(to right, #2563eb, #4f46e5);
+        border: none;
+        box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.3);
+        transition: all 0.3s ease-in-out;
+    }
+    .bg-blue-600.text-white.font-semibold.py-3:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 20px -3px rgba(59, 130, 246, 0.4);
+        background-image: linear-gradient(to right, #3b82f6, #6366f1);
+    }
+
+    /* --- New: Dynamic Content Styling --- */
+    
+    /* Style for items in the 'Recent Bookings' list */
+    #bookingsList > div {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #f3f4f6; /* Add a subtle border */
+    }
+    #bookingsList > div:hover {
+        /* The JS already adds hover:bg-gray-50, which is good. */
+        /* Let's add a transform to make it 'pop' */
+        transform: translateX(5px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border-color: #e5e7eb; /* gray-200 */
+    }
+
+    /* Style for secondary links like 'View all' and 'Edit profile' */
+    a.text-blue-600.hover\:underline,
+    a.text-blue-600.text-sm.font-medium.hover\:underline {
+        transition: all 0.2s ease-in-out;
+    }
+    a.text-blue-600.hover\:underline:hover,
+    a.text-blue-600.text-sm.font-medium.hover\:underline:hover {
+        text-decoration: none; /* Remove underline */
+        color: #1d4ed8; /* blue-700 */
+    }
+    /* Add a '->' arrow on hover */
+    a.text-blue-600.hover\:underline:hover::after,
+    a.text-blue-600.text-sm.font-medium.hover\:underline:hover::after {
+        content: ' →';
+        display: inline-block;
+        transition: transform 0.2s ease-in-out;
+        transform: translateX(2px);
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="flex h-screen bg-gray-100">
+    <aside id="sidebar" class="w-64 flex-shrink-0 bg-white shadow-lg hidden lg:flex flex-col">
+      <div class="h-16 flex items-center justify-center border-b">
+        <h1 class="text-2xl font-bold text-gray-800">Sharing Yatra</h1>
+      </div>
+
+      <nav class="flex-1 px-4 py-6 space-y-2">
+        <a href="#" class="flex items-center px-4 py-2 text-gray-700 bg-gray-200 rounded-lg font-semibold">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+            </path>
+          </svg>
+          Dashboard
+        </a>
+        <a href="/booking.html" class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Book a Ride
+        </a>
+        <a href="#" class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+            </path>
+          </svg>
+          My Bookings
+        </a>
+        <a href="#" class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+            </path>
+          </svg>
+          Profile
+        </a>
+      </nav>
+
+      <div class="px-4 py-6 border-t">
+        <a id="logoutBtn" href="/login.html" class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+            </path>
+          </svg>
+          Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <header class="bg-white shadow-sm h-16 flex justify-between items-center px-4 lg:hidden">
+        <h1 class="text-2xl font-bold text-gray-800">Sharing Yatra</h1>
+        <button id="mobileToggle"
+                class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                aria-label="Open sidebar">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16">
+            </path>
+          </svg>
+        </button>
+      </header>
+
+      <main class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
+        <div class="mb-8">
+          <h2 id="welcomeTitle" class="text-3xl font-bold text-gray-900">Welcome back, User!</h2>
+          <p class="text-gray-500 mt-1">Here's a summary of your recent activity.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div id="recentBookings"
+     class="bg-white rounded-2xl shadow p-6 lg:col-span-2"> <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold text-gray-800">Recent Bookings</h2>
+    <a href="/booking.html" class="text-blue-600 text-sm font-medium hover:underline">
+      Book a New Ride
+    </a>
+  </div>
+  <div id="bookingsList" class="space-y-3">
+    </div>
+  <div class="text-center mt-6">
+    <a href="#" class="text-blue-600 text-sm font-medium hover:underline">
+      View all bookings
+    </a>
+  </div>
+</div>
+
+          <div class="space-y-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
+              <a href="/booking.html"
+                 class="w-full block bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                Book a New Ride
+              </a>
+            </div>
+
+            <section class="bg-white rounded-2xl shadow-lg p-6">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4">Profile Summary</h3>
+              <div id="profileBox" class="space-y-3 text-sm">
+                <div class="flex justify-between"><span class="text-gray-500">Name:</span><span class="font-medium text-gray-800">Loading...</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Email:</span><span class="font-medium text-gray-800">Loading...</span></div>
+              </div>
+              <a href="#" class="text-sm font-medium text-blue-600 hover:underline mt-6 block text-center">Edit Profile</a>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+ <script>
+    // Small util to create profile rows safely
+    function row(label, value) {
+      const wrap = document.createElement('div');
+      wrap.className = 'flex justify-between';
+      const l = document.createElement('span');
+      l.className = 'text-gray-500';
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.className = 'font-medium text-gray-800';
+      v.textContent = value ?? '';
+      wrap.append(l, v);
+      return wrap;
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/profile", {
+          method: "GET",
+          credentials: "include" // send session cookie
+        });
+
+        if (res.status === 401) {
+          window.location.href = "/login.html";
+          return;
+        }
+
+        const user = await res.json();
+
+        // Update welcome header
+        const title = document.getElementById("welcomeTitle");
+        if (title) title.textContent = `Welcome back, ${user.name || 'User'}!`;
+
+        // Update Profile Summary section (XSS-safe)
+        const profileBox = document.getElementById("profileBox");
+        if (profileBox) {
+          profileBox.innerHTML = ""; // clear safely
+          profileBox.append(
+            row("Name:", user.name || ""),
+            row("Email:", user.email || ""),
+            row("Role:", user.type || "")
+          );
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+         const profileBox = document.getElementById("profileBox");
+         if (profileBox) {
+            profileBox.innerHTML = `<p class="text-red-500 text-sm">Could not load profile.</p>`;
+         }
+      }
+    }
+
+    // --- This function was in your code but not used ---
+    // async function loadBookings() { ... }
+
+    // --- UPDATED FUNCTION ---
+    // This replaces the emoji icons with clean SVGs
+    async function loadRecentBookings() {
+      try {
+        const res = await fetch("/api/recent-bookings", {
+            method: "GET",
+            credentials: "include"
+        });
+        const data = await res.json();
+        const list = document.getElementById("bookingsList");
+        if (!list) return;
+
+        list.innerHTML = ""; // Clear previous data
+
+        if (!data.success || !data.bookings.length) {
+          list.innerHTML = `<p class="text-gray-500 text-center py-4">No recent bookings found.</p>`;
+          return;
+        }
+
+        data.bookings.forEach((b) => {
+          let iconSvg, color, bg, badgeColor, badgeBg;
+
+          // Define SVG icons and colors for each status
+          switch (b.status) {
+            case "Confirmed":
+              iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+              color = "text-green-700";
+              bg = "bg-green-100";
+              break;
+            case "Pending":
+              iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+              color = "text-yellow-700";
+              bg = "bg-yellow-100";
+              break;
+            case "Completed":
+              iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+              color = "text-gray-700";
+              bg = "bg-gray-100";
+              break;
+            default: // Info or other statuses
+              iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+              color = "text-blue-700";
+              bg = "bg-blue-100";
+          }
+          
+          // Use the same colors for the badge
+          badgeColor = color;
+          badgeBg = bg;
+
+          const div = document.createElement("div");
+          div.className =
+            "flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition";
+          
+          // Replaced the 'text-2xl' span with this new icon container
+          div.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${bg} ${color}">
+                ${iconSvg}
+              </span>
+              <div>
+                <p class="font-semibold text-gray-800">${b.from} to ${b.to}</p>
+                <p class="text-sm text-gray-500">${b.date} at ${b.time}</p>
+              </div>
+            </div>
+            <span class="text-xs font-medium px-3 py-1 rounded-full ${badgeBg} ${badgeColor}">
+              ${b.status}
+            </span>
+          `;
+          list.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Error loading bookings:", err);
+        const list = document.getElementById("bookingsList");
+        if(list) list.innerHTML = `<p class="text-red-500 text-center py-4">Could not load bookings.</p>`;
+      }
+    }
+
+    // --- END OF UPDATED FUNCTION ---
+
+    function wireInteractions() {
+      // Mobile sidebar toggle
+      const toggle = document.getElementById("mobileToggle");
+      const sidebar = document.getElementById("sidebar");
+      if (toggle && sidebar) {
+        toggle.addEventListener("click", () => {
+          const isHidden = sidebar.classList.contains("hidden");
+          sidebar.classList.toggle("hidden", !isHidden);
+          sidebar.classList.toggle("flex", isHidden);
+        });
+      }
+
+      // Logout
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          try {
+            // This expects a backend /logout route (see snippet below)
+            await fetch("/logout", { method: "POST", credentials: "include" });
+          } catch (_) { /* noop */ }
+          window.location.href = "/login.html";
+        });
+      }
+    }
+
+    // Initialize
+    (async function init() {
+      wireInteractions();
+      await loadProfile();
+      await loadRecentBookings(); // Load once on init
+
+      // Real-time auto-refresh every 15 seconds
+      setInterval(loadRecentBookings, 15000);
+    })();
+  </script>
+</body>
+</html>
