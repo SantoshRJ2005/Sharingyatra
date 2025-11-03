@@ -226,30 +226,68 @@ app.get('/agency', (req, res) => {
 });
 
 // ====== Login Route ======
+
+// ====== Login Route ======
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let account = await User.findOne({ email });
-    let userType = "customer";
+    let user = null;
+    let role = null;
+    let redirectUrl = null;
 
-   account = await Agencies.findOne({ agencyEmail: email });
-    if (!account) {
+    // 1. Check if it's a Customer (User)
+    user = await User.findOne({ email });
+    if (user) {
+      role = "customer";
+      redirectUrl = "/dashboard.html"; // Your customer dashboard
+    }
+
+    // 2. If not customer, check if it's an Agency
+    if (!user) {
+      // Using 'agencyEmail' field from your reference code
+      user = await Agencies.findOne({ agencyEmail: email }); 
+      if (user) {
+        role = "agency";
+        redirectUrl = "/manageBooking"; // Your agency dashboard
+      }
+    }
+
+    // 3. If not agency, check if it's a Driver
+    if (!user) {
+      user = await Driver.findOne({ email: email });
+      if (user) {
+        role = "driver";
+        redirectUrl = "/dashboard"; // Your driver dashboard
+      }
+    }
+
+    // 4. If user is still not found, send error
+    if (!user) {
       return res.status(400).json({ success: false, message: "Account not found" });
     }
 
-    if (account.password !== password) {
+    // 5. Check password (Plain Text - See Security Warning Below!)
+    if (user.password !== password) {
       return res.status(400).json({ success: false, message: "Invalid password" });
     }
 
+    // 6. Set up the session
+    // This creates a standard session object regardless of user type
     req.session.user = {
-      id: account._id,
-      email: account.email,
-      phone: account.phone,
-     // name: userType === "customer" ? account.username : "Agency",
-      type: userType
+      id: user._id,
+      email: user.email || user.agencyEmail, // Use the correct email field
+      name: user.username || user.agencyName || user.fullName, // Get the best available name
+      role: role 
     };
-    res.json({ success: true, message: "Login successful" });
+    
+    // 7. Send success JSON with the correct redirect URL
+    res.json({ 
+      success: true, 
+      message: "Login successful", 
+      redirectTo: redirectUrl // Tell the frontend where to go
+    });
+
   } catch (err) {
     console.error("Login Error:", err);
     res.status(500).json({ success: false, message: "Server error" });
